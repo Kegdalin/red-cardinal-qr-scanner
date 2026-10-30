@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team Red Cardinal QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 520px;
+      margin: 20px auto;
+      padding: 16px;
+      text-align: center;
+    }
+    h2 { color: #9f1239; }
+    button, input {
+      padding: 13px;
+      font-size: 17px;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 8px 0;
+    }
+    button {
+      background: #9f1239;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+    #reader { width: 100%; }
+    #status {
+      padding: 14px;
+      background: #eee;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Team Red Cardinal</h2>
+<p>PE Day 2026 — QR Camera Scanner</p>
+
+<div id="reader"></div>
+
+<p>Or enter a QR ID manually:</p>
+<input id="qrId" placeholder="Student QR ID">
+
+<button onclick="openClaimPage()">
+  Continue to Snack Claim
+</button>
+
+<div id="status">Ready to scan</div>
+
+<script>
+  // REPLACE THIS with your existing Apps Script /exec URL.
+  const CLAIM_PAGE_URL = "https://script.google.com/macros/s/AKfycbwXYkWFBgtw1YS3jEBne1y78IfM7sRO-lKldO-JY55J35dqpbgj2HLzNFa4TIGqKyAYfQ/exec";
+
+  const statusBox = document.getElementById("status");
+  const qrInput = document.getElementById("qrId");
+  let lastScan = "";
+
+  function openClaimPage() {
+    const id = qrInput.value.trim();
+
+    if (!id) {
+      statusBox.textContent = "Please scan or enter a QR ID.";
+      return;
+    }
+
+    if (!CLAIM_PAGE_URL.startsWith("https://")) {
+      statusBox.textContent =
+        "Please configure your Apps Script URL first.";
+      return;
+    }
+
+    const url = new URL(CLAIM_PAGE_URL);
+    url.searchParams.set("qr", id);
+    window.location.href = url.toString();
+  }
+
+  function onScanSuccess(decodedText) {
+    if (decodedText === lastScan) return;
+    lastScan = decodedText;
+
+    qrInput.value = decodedText;
+    statusBox.textContent = "QR code detected: " + decodedText;
+
+    // Staff confirms before opening the claim page.
+  }
+
+  if (window.Html5QrcodeScanner) {
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: 230 },
+      false
+    );
+
+    scanner.render(onScanSuccess, function() {});
+  } else {
+    statusBox.textContent =
+      "Scanner library unavailable. Use manual entry.";
+  }
+</script>
+
+</body>
+</html>
